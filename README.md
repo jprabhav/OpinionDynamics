@@ -1,7 +1,7 @@
 # OpinionDynamics
 
 This notebook presents a multi-layered simulation of opinion dynamics using two complementary approaches:
-- Expected Utility Model: This model is based on game heory where actors with position, salience and capability strategically influence others.
+- Expected Utility Model: This model is based on game theory where actors with position, salience and capability strategically influence others.
 - Opinion Dynamics: This model is based on statistical mechanics where the players' pinions evolve via local majority influence.
 - Hybrid Model: Combines both paradigms with strong influencers and a social network structure.
 
