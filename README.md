@@ -1,4 +1,4 @@
-# OpinionDynamics
+# Opinion Dynamics
 
 This notebook presents a multi-layered simulation of opinion dynamics using two complementary approaches:
 - Expected Utility Model: This model is based on game theory where actors with position, salience and capability strategically influence others.
