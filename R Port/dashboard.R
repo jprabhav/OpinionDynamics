@@ -1,14 +1,3 @@
-# ==============================================================================
-# app.R  —  Hybrid Opinion Risk Model
-# R / Shiny port of Hybrid_Opinion_Risk_Model.ipynb
-#
-# Bugs preserved exactly as in the original Python source (noted inline).
-#
-# Packages required:
-#   install.packages(c("shiny", "ggplot2", "ggraph", "igraph",
-#                      "patchwork", "tidyr"))
-# ==============================================================================
-
 library(shiny)
 library(ggplot2)
 library(ggraph)
@@ -18,14 +7,6 @@ library(tidyr)
 
 # ==============================================================================
 # SECTION 1 — STRATEGIC AGENT MODEL (Expected Utility / PG Model)
-# ==============================================================================
-#
-# Python class: StrategicAgent(id, position, salience, capability)
-# R equivalent: data.frame with one row per agent.
-#
-# influence_score  =  salience * capability
-# shift_position   :  each agent shifts toward the influence-weighted average
-#                     position of ALL other agents (convergence_parameter = 0.2)
 # ==============================================================================
 
 run_strategic_simulation <- function(n_agents = 20, n_steps = 30) {
@@ -75,17 +56,6 @@ plot_strategic <- function(df) {
 # ==============================================================================
 # SECTION 2 — GALAM OPINION DYNAMICS
 # ==============================================================================
-#
-# Python class: GalamAgent(id, opinion)  where opinion in {-1, 0, +1}
-# R equivalent: integer vector of opinions; history stored as matrix.
-#
-# decide() : local majority rule.
-#   - Undecided agents follow the net sign of neighbours.
-#   - Committed agents flip if opposing pressure exceeds own-side support.
-#
-# NOTE: np.random.choice(agents, size=5, replace=False) can include self.
-#       Preserved here as sample(seq_len(n_agents), 5, replace = FALSE).
-# ==============================================================================
 
 run_galam_simulation <- function(n_agents = 100, n_steps = 10) {
   
@@ -130,17 +100,6 @@ plot_galam <- function(df) {
 
 # ==============================================================================
 # SECTION 3 — HYBRID NETWORK MODEL
-# ==============================================================================
-#
-# Python classes: HybridAgent, Influencer
-# R equivalent  : agents data.frame + 2-row influencers data.frame
-#
-# Network : Watts-Strogatz via igraph::sample_smallworld()
-#           (nei = 3 gives degree 6 per node, matching networkx k=6)
-#
-# decide()    : influence-weighted net sum — sign rule (HM.R)
-# broadcast() : influencer flips eligible agents with probability `strength`
-#               (per-agent loop, matching HM.R)
 # ==============================================================================
 
 run_hybrid_simulation <- function(n_agents = 100, influencer_strength = 0.5) {
@@ -240,33 +199,19 @@ plot_hybrid <- function(result) {
 # ==============================================================================
 # SECTION 4 — INSURANCE RISK SIMULATION
 # ==============================================================================
-#
-# Python classes: ModifiedGalamAgent, ModifiedInfluencer
-# R equivalent  : agents data.frame with extra columns
-#                 has_policy, policy_start, policy_end, claims_count
-#
-# Premium (standard deviation principle):
-#   P = p * mu * (1 + theta)
-#
-# Claims ~ Exp(mean = avg_claim_size)
-#   R: rexp(n, rate = 1/avg_claim_size)  [rate = 1/scale, matching Python]
-#
-# Network effects are commented out — preserved exactly from original.
-# ==============================================================================
 
-# Global parameters — preserved exactly from Python source
 THRESHOLD_PRICE                  <- 150
 PROB_BELOW_THRESHOLD_PRO         <- 0.5
 PROB_ABOVE_THRESHOLD_PRO         <- 0.1
 PROB_BELOW_THRESHOLD_UNDECIDED   <- 0.2
 PROB_ABOVE_THRESHOLD_UNDECIDED   <- 0.05
 BUY_PROB_ANTI                    <- 0
-BUY_PROB_NEIGHBOR_MULTIPLIER     <- 0.02   # commented-out network effect
+BUY_PROB_NEIGHBOR_MULTIPLIER     <- 0.02   
 PROB_RENEWAL_PRO                 <- 0.95
 PROB_RENEWAL_UNDECIDED           <- 0
 PROB_RENEWAL_ANTI                <- 0.01
-RENEWAL_PROB_CLAIM_MULTIPLIER    <- 0.1    # commented-out network effect
-RENEWAL_PROB_NEIGHBOR_MULTIPLIER <- 0.02   # commented-out network effect
+RENEWAL_PROB_CLAIM_MULTIPLIER    <- 0.1    
+RENEWAL_PROB_NEIGHBOR_MULTIPLIER <- 0.02  
 
 calculate_premium <- function(mu, theta, p) {
   p * mu * (1 + theta)
@@ -539,7 +484,7 @@ plot_insurance_metrics <- function(result) {
   (p1 | p2 | p3) +
     plot_annotation(
       title = sprintf(
-        "Insurance Market Simulation  |  Premium = $%.2f/mo  |  Claim Prob = %.1f%%",
+        "Insurance Market Simulation  |  Premium = €%.2f/mo  |  Claim Prob = %.1f%%",
         prem, params$claim_probability * 100
       ),
       theme = theme(plot.title = element_text(size = 13, face = "bold"))
@@ -560,14 +505,10 @@ build_summary_table <- function(result) {
   else NA_real_
   
   data.frame(
-    Category = c(
-      rep("Parameters", 4L),
-      rep("Results",    6L)
-    ),
     Metric = c(
-      "Monthly Premium ($)", "Claim Probability",
-      "Avg Claim ($)",       "Expense Ratio",
-      "Avg Active Policies", "Total Profit ($)", "Status",
+      "Monthly Premium (€)", "Claim Probability",
+      "Avg Claim (€)",       "Expense Ratio",
+      "Avg Active Policies", "Total Profit (€)", "Status",
       "Total Renewals",      "Total Lapses",     "Retention Rate"
     ),
     Value = c(
@@ -682,10 +623,10 @@ ui <- navbarPage(
   ),
   
   # --------------------------------------------------------------------------
-  # Tab 4: Insurance Risk Simulation
+  # Tab 4: Insurance Claims Simulation
   # --------------------------------------------------------------------------
   tabPanel(
-    "Insurance Risk Simulation",
+    "Insurance Claims Simulation",
     sidebarLayout(
       sidebarPanel(
         width = 3,
@@ -711,8 +652,7 @@ ui <- navbarPage(
         hr(),
         helpText(
           "Claims ~ Exp(mean = $2,000). Premium via standard deviation",
-          "principle: P = p·μ·(1+θ). Agents buy and renew 12-month",
-          "policies based on opinion and price thresholds."
+          "principle: P = p·μ·(1+θ)."
         )
       ),
       mainPanel(
